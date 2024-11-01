@@ -1,9 +1,13 @@
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 3.24)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(NAME conv)
 
-project(${NAME} C) 
+project(${NAME} C)
 
-add_executable(${NAME} main.c utils.c)
+file(GLOB_RECURSE srcs RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.c")
+
+add_executable(${NAME} ${srcs})
+
+target_include_directories(${NAME} PRIVATE src)
