@@ -1,22 +1,16 @@
 #include <string.h>
 
 #include "utils.h"
-const char *get_ext(const char *filename) {
-  const char *dot = strchr(filename, '.');
+#include <stdlib.h>
+#include <string.h>
+char *concat(const char* a, const char* b) {
+    const size_t a_len = strlen(a);
+    const size_t b_len = strlen(b);
 
-  if (!dot || dot == filename) {
-    return "";
-  }
+    char* result = malloc(a_len + b_len);
 
-  return dot + 1;
-}
+    memcpy(result, a, a_len);
+    memcpy(result + a_len, b, b_len + 1);
 
-void change_ext(char *filename, const char *new_ext) {
-  char *dot = strchr(filename, '.');
-
-  if (!dot || dot == filename) {
-    return;
-  }
-
-  memcpy(dot + 1, new_ext, 4);
+    return result;
 }

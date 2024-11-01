@@ -1,5 +1,4 @@
 #include "conv.h"
-#include "sys/stat.h"
 #include "utils.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -8,8 +7,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-static const int ZERO = 48;
-static const int A = 87;
+static const int ZERO = 0x30;
+static const int A = 0x41;
 
 char int2hex(int c) { return c + (c < 10 ? ZERO : A); }
 
@@ -28,12 +27,7 @@ struct conv_files_t {
 };
 
 FILE* open_dest_file(const char *src_path, const char *dst_ext) {
-  size_t len = strlen(src_path) + 1;
-  char *dst_path = malloc(len);
-
-  strcpy(dst_path, src_path);
-
-  change_ext(dst_path, dst_ext);
+  char *dst_path = concat(src_path, dst_ext);
 
   printf("Destination file name is [%s]\n", dst_path);
 
@@ -58,6 +52,7 @@ struct conv_files_t open_files(const char *src_path, const char *dst_ext) {
 
   if (!files.dst)  {
     printf("Cant open dest file [%s]\n", src_path);
+    fclose(files.src);
     return files;
   }
 
@@ -67,31 +62,47 @@ struct conv_files_t open_files(const char *src_path, const char *dst_ext) {
 }
 
 void close_files(struct conv_files_t *files) {
-  if (files->src != NULL) {
+  if (files->src) {
     fclose(files->src);
   }
-  if (files->dst != NULL) {
+  if (files->dst) {
     fclose(files->dst);
   }
 } 
 
+int to_hex_converter(FILE* src, FILE* dst) {
+  int x;
+  while ((x = fgetc(src)) != EOF) {
+    int p = x / 16;
+    putc(int2hex(p), dst);
+    putc(int2hex(x - p * 16), dst);
+  }
 
-int convert_file_to_hex(const char *src_path) {  
-  printf("Converting file [%s] to hex...\n", src_path);
+  return 0;
+}
 
-  struct conv_files_t files = open_files(src_path, "hex");
+int to_bin_converter(FILE* src, FILE* dst) {
+  int8_t buf[2] = {0}; 
+
+  while (fread(buf, 2, 1, src) == 1) {
+    int x = hex2int(buf[0], buf[1]); 
+    fputc(x, dst);
+  }
+
+  return 0;
+}
+
+int convert_file(const char *path, const char *dst_ext, converter_t converter) {  
+  printf("Converting file [%s] to hex...\n", path);
+
+  struct conv_files_t files = open_files(path, dst_ext);
 
   if(!files.ok) {
     printf("Cant open files\n");
     return -1;
   }
 
-  int x;
-  while ((x = fgetc(files.src)) != EOF) {
-    int p = x / 16;
-    putc(int2hex(p), files.dst);
-    putc(int2hex(x - p * 16), files.dst);
-  }
+  converter(files.src, files.dst);
 
   close_files(&files);
   
@@ -100,26 +111,10 @@ int convert_file_to_hex(const char *src_path) {
   return 0;
 }
 
-int convert_file_to_bin(const char *src_path) {  
-  printf("Converting file [%s] to bin...\n", src_path);
+int convert_file_to_hex(const char *src_path) {
+  return convert_file(src_path, ".hex", to_hex_converter);
+}
 
-  struct conv_files_t files = open_files(src_path, "bin");
-
-  if(!files.ok) {
-    printf("Cant open files\n");
-    return -1;
-  }
-
-  int8_t buf[2] = {0}; 
-
-  while (fread(buf, 2, 1, files.src) == 1) {
-    int x = hex2int(buf[0], buf[1]); 
-    fputc(x, files.dst);
-  }
-
-  close_files(&files);
-  
-  printf("Done\n");
-
-  return 0;
+int convert_file_to_bin(const char *src_path) {
+  return convert_file(src_path, ".bin", to_bin_converter);
 }
