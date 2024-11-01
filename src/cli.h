@@ -1,15 +1,12 @@
-#ifndef CLI
-#define CLI
+#pragma once
 
 static const char *HELP_PARAM = "-h";
 
 struct cmd_handler_t {
-  char *name;
-  char *descr;
-  int (*apply)(char *path);
+  const char *name;
+  const char *descr;
+  int (*apply)(const char *path);
 };
 
-int cli(int argc, char *argv[], struct cmd_handler_t *handlers,
+int cli(int argc, char *argv[], const struct cmd_handler_t *handlers,
         int handlers_size);
-
-#endif /* CLI */

@@ -1,6 +1,5 @@
-#ifndef CONV_UTILS_H
-#define CONV_UTILS_H
+#pragma once
 
 const char *get_ext(const char *filename);
 
-#endif
+void change_ext(char *filename, const char *new_ext);

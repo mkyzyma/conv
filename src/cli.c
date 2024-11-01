@@ -2,18 +2,18 @@
 #include <stdio.h>
 #include <string.h>
 
-void usage(const char *progname, struct cmd_handler_t *handlers,
+void usage(const char *progname, const struct cmd_handler_t *handlers,
            int handlers_size) {
   printf("Usage: %s option source_file_name\n", progname);
   printf("Options:\n");
 
   for (int i = 0; i < handlers_size; ++i) {
-    struct cmd_handler_t *handler = &handlers[i];
+    const struct cmd_handler_t *handler = &handlers[i];
     printf("  %s: %s\n", handler->name, handler->descr);
   }
 }
 
-int cli(int argc, char *argv[], struct cmd_handler_t *handlers,
+int cli(int argc, char *argv[], const struct cmd_handler_t *handlers,
         int handlers_size) {
   char *progname = argv[0];
 
@@ -29,7 +29,7 @@ int cli(int argc, char *argv[], struct cmd_handler_t *handlers,
   for (int i = 0; i < handlers_size; ++i) {
     char *cmd = argv[1];
 
-    struct cmd_handler_t *handler = &handlers[i];
+    const struct cmd_handler_t *handler = &handlers[i];
 
     if (!strcmp(cmd, handler->name)) {
       char *path = argv[2];
