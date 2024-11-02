@@ -1,8 +1,7 @@
 #include "cli.h"
-#include "conv.h"
+#include "app.h"
 #include <stdio.h>
 
-int test(const char *path) { printf("Apply: %s\n", path); }
 
 int main(int argc, char *argv[]) {
   struct cmd_handler_t handlers[2] = {

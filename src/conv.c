@@ -7,19 +7,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-static const int ZERO = 0x30;
-static const int A = 0x41;
-
-char int2hex(int c) { return c + (c < 10 ? ZERO : A); }
-
-int hex2int(char a, char b){
-
-    a = (a <= '9') ? a - ZERO : (a & 0x7) + 9;
-    b = (b <= '9') ? b - ZERO : (b & 0x7) + 9;
-
-    return (a << 4) + b;
-}
-
 struct conv_files_t {
   bool ok;
   FILE* src;
@@ -70,30 +57,10 @@ void close_files(struct conv_files_t *files) {
   }
 } 
 
-int to_hex_converter(FILE* src, FILE* dst) {
-  int x;
-  while ((x = fgetc(src)) != EOF) {
-    int p = x / 16;
-    putc(int2hex(p), dst);
-    putc(int2hex(x - p * 16), dst);
-  }
 
-  return 0;
-}
-
-int to_bin_converter(FILE* src, FILE* dst) {
-  int8_t buf[2] = {0}; 
-
-  while (fread(buf, 2, 1, src) == 1) {
-    int x = hex2int(buf[0], buf[1]); 
-    fputc(x, dst);
-  }
-
-  return 0;
-}
 
 int convert_file(const char *path, const char *dst_ext, converter_t converter) {  
-  printf("Converting file [%s] to hex...\n", path);
+  printf("Converting file [%s] to [%s]...\n", path, dst_ext + 1);
 
   struct conv_files_t files = open_files(path, dst_ext);
 
@@ -102,7 +69,10 @@ int convert_file(const char *path, const char *dst_ext, converter_t converter) {
     return -1;
   }
 
-  converter(files.src, files.dst);
+  if(converter(files.src, files.dst)) {
+    printf("Bad file format\n");
+    return -1;
+  }
 
   close_files(&files);
   
@@ -111,10 +81,3 @@ int convert_file(const char *path, const char *dst_ext, converter_t converter) {
   return 0;
 }
 
-int convert_file_to_hex(const char *src_path) {
-  return convert_file(src_path, ".hex", to_hex_converter);
-}
-
-int convert_file_to_bin(const char *src_path) {
-  return convert_file(src_path, ".bin", to_bin_converter);
-}
